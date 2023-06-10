@@ -1,7 +1,7 @@
 # Framer Motionの仕様をまとめ、検証するリポジトリ
 ## 最高にiPhoneみたいなUIを作ろう！
 
-最初はframer-motionのチュートリアルに従い、framer-motionの機能をまとめていました。(最後に目次あり)その中で、Layoutの機能がiOSの動作を再現するに向いていると感じたので、iOSのようなUIをJavaScriptで実現してみました。
+最初はframer-motionのチュートリアルに従い、framer-motionの機能をまとめていました。(最後に目次あり)その中で、Layoutの機能がiOSの動作を再現するに向いていると感じたので、iOSのようなUIをJavaScriptで実現してみました。もっとiOSに似たUIを作れるかたはぜひプルリクエストをください！
 
 > 使用技術は`Next.js`, `TailWindCSS`, `Framer Motion`です。
 
@@ -13,7 +13,7 @@ cd framer-motion-tutorial
 npm i
 npm run dev
 ```
-上のコマンドを打ち`http://localhost:3000/layout/ios`にアクセスまたは`https://iridescent-daffodil-144897.netlify.app/layout/ios`にアクセス(このリンクは変更させることがあります。)
+上のコマンドを打ち`http://localhost:3000/layout/ios`にアクセスまたは[こちら](https://iridescent-daffodil-144897.netlify.app/layout/ios)にアクセス(このリンクは変更させることがあります。)
 
 ###  UIの動作の説明
 
