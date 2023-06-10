@@ -1,38 +1,96 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Framer Motionの仕様をまとめ、検証するリポジトリ
+## 最高にiPhoneみたいなUIを作ろう！
 
-## Getting Started
+最初はframer-motionのチュートリアルに従い、framer-motionの機能をまとめていました。(最後に目次あり)その中で、Layoutの機能がiOSの動作を再現するに向いていると感じたので、iOSのようなUIをJavaScriptで実現してみました。
 
-First, run the development server:
+> 使用技術は`Next.js`, `TailWindCSS`, `Framer Motion`です。
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
+### 動作を見てみる
+
 ```
+git clone https://github.com/doraemon-python/framer-motion-tutorial.git
+cd framer-motion-tutorial
+npm i
+npm run dev
+```
+上のコマンドを打ち`http://localhost:3000/layout/ios`にアクセスまたは`https://iridescent-daffodil-144897.netlify.app/layout/ios`にアクセス(このリンクは変更させることがあります。)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+###  UIの動作の説明
 
-You can start editing the page by modifying `pages/index.js`. The page auto-updates as you edit the file.
+1. アプリを開くと、
+   - メインのアプリ群が小さくなる
+   - 下のアプリ群が下に動く
+   - 画面全体に黒いフィルターがかかる
+   - フィルターの上でアプリが拡大し全画面になる
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.js`.
+   が同時に起こります。
+1. アプリを閉じると、
+   - メインのアプリ群が小さい状態から元に戻る
+   - 下のアプリ群が少し上から元の位置に戻る
+   - アプリ画面が元の大きさに戻る
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+   が同時に起こります。
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+なお、アプリ画面及びアイコンは真っ白な`div`タグと重なっており、起動時はアイコンが薄くなってだんだん見えなくなり、終了時はアイコンが真っ白の状態からだんだん見えてくるようにしています。
 
-## Learn More
+### コンポーネントの説明
 
-To learn more about Next.js, take a look at the following resources:
+このUIに必要なコンポーネントファイルは
+- /components/home.js
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+ページファイルは
+- /pages/layout/ios/index.js
+- /pages/layout/ios/[appname].js
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+です。
 
-## Deploy on Vercel
+1.コンポーネント構造
+- `<Home />`
+   - `<TopBar />` --- 時計、ダイナミックアイランド、Wi-Fiなどの表示部分
+   - `<MainIcons />` --- ボトムバーを除くアプリおよびウィジェット
+   - `<BottomBar />` --- 画面下部のアプリ群
+   - `<BgFilter />` --- 背景を黒くするフィルター
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+`<MainIcons />`と`<BottomBar />`はCSS gridを用いており、アプリは 1 * 1, ウィジェットは 2 * 2の大きさです。
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+1. アプリのコンポーネント
+   - `<TopIcon />` --- `<MainIcons />`に用いられるアプリアイコンで、アプリ名がアイコンの下についています。
+   - `<BottomIcon />` --- `<BottomBar />`に用いられるアプリアイコンで、アプリ名がありません。
+   
+   また、この二つは`<BaseIcon />`を子要素に持ちます。
+
+1. ウィジェットのコンポーネント
+   - `<WidgetWeather />` --- 天気アプリ専用のウィジェットです。
+   - `<WidgetPhotos />` --- 写真アプリ専用のウィジェットです。
+   
+   また、この二つは`<BaseWidget />`を子要素に持ちます。
+
+1. アニメーションを実現するコンポーネント
+   
+   `<BaseIcon />`と`<BaseWidget />`は`<AnimationSquare />`を子要素に持ちます。これは上記の拡大、縮小、真っ白状態との相互遷移を実現するための正方形のコンポーネントです。さらにこれは、`<SquareContainer />`を子要素に持ちます。これは、`padding-top: 100%;`を用いて、正方形の要素を作るためのコンポーネントです。
+
+### アニメーションの仕組み
+`/layout/ios/`は`<Home />`のみを出力します。各アプリ、ウィジェットはそれぞれの`layoutId`を持っています。
+
+ユーザが`/layout/ios/photos/`(例)にアクセスすると、真っ白な`<div>`タグと`<DummyHome />`が返されます。`<DummyHome />`は`<div>`タグのしたにあり見えませんが、アイコンが拡大中の時に一部見えるのでおいています。`<div>`タグに`layoutId`を設定している一方、`<DummyHome />`は`<Home />`と見た目は同じでも、各アイコンは`layoutId`を持たないため、適切にアイコンの拡大、縮小の描画ができます。`<AnimationSquare />`はアイコンと真っ白の要素が重なっており、ホーム画面ではアイコンが、起動画面では白い背景のみが見えます。互いに`opacity`を入れ替えることで自然な描画処理をしています。そのほか、`z-index`を調整しています。
+
+### 現在の問題点
+- アプリ画面を詳細に設定しても、起動、終了アニメーションでは真っ白な画面で代用せざるを得ない。
+- アプリ終了アニメーション時にz-indexの関係から、黒いフィルターを間にかますことができない。
+- アプリ終了アニメーション時に、一瞬ホーム画面の他のアイコンが白画面の上に見えることがある。
+
+### 今後実装したい機能
+- コントロールメニューの設定
+- アプリの作りこみ
+- 画面を下にスワイプすることでアプリ終了
+
+### 他のファイル構造
+チュートリアルで紹介された順にその機能を実装しています。
+- normal --- 基本的なアニメーションの定義方法
+- variant --- 変数を使ったアニメーション
+- gesture --- タップやホバーした時のアニメーション
+- drag --- ドラッグ機能のあるアニメーション
+- scroll --- 画面内に入ったときの処理
+- exit --- `<AnimationPresence />`を使ったアンマウント時の処理
+- layout --- `layout`機能を使ったアニメーション。この中にiOSのようなアニメーションあり
+- tmp --- 一時的に実験するためのページ

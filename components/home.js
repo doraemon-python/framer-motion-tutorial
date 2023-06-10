@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 
+
 const Home = ({ willSetLayoutId = true, shrink = false }) => {
   const [bg, setBg] = useState('/iphone-bg.png');
   return (
@@ -11,17 +12,11 @@ const Home = ({ willSetLayoutId = true, shrink = false }) => {
       className="w-screen h-screen bg-cover bg-center bg-fixed overflow-scroll flex flex-col"
     >
       <TopBar />
-      <motion.div
-        initial={{ scale: shrink ? 1 : 0.8 }}
-        animate={{ scale: shrink ? 0.8 : 1 }}
-        className="w-full h-full flex flex-col duration-200"
-      >
-        <MainIcons willSetLayoutId={willSetLayoutId} setBg={setBg} />
-        <BottomIconsBar willSetLayoutId={willSetLayoutId} />
-      </motion.div>
+      <MainIcons willSetLayoutId={willSetLayoutId} shrink={shrink} />
+      <BottomIconsBar willSetLayoutId={willSetLayoutId} shrink={shrink} />
       {/* opacity, transformが設定された要素は出る順にどれが上か決まる。 */}
       {/* Filterはこの中では一番上に表示させたいため、最後に配置する。 */}
-      {shrink && <Filter />}
+      {shrink && <BgFilter shrink={shrink} />}
     </div>
   );
 }
@@ -61,47 +56,57 @@ const TopBar = () => {
   )
 }
 
-const MainIcons = ({ willSetLayoutId, setBg }) => {
+const MainIcons = ({ willSetLayoutId, shrink }) => {
   return (
-    <div className="w-full flex-grow">
+    <motion.div
+      initial={{ scale: shrink ? 1 : 0.8 }}
+      animate={{ scale: shrink ? 0.8 : 1 }}
+      transition={{ ease: "linear" }}
+      className="w-full flex-grow"
+    >
       <div className="w-[95%] mx-auto px-3 pt-6 grid grid-cols-4 gap-x-6 gap-y-4">
         {mainApps.map(item => {
           if (item.type === "app") {
             return <TopIcon key={item.id} willSetLayoutId={willSetLayoutId} link={item.link} name={item.name} icon={item.icon} />
           } else if (item.type === "widget") {
-            return <BaseWidget key={item.id} willSetLayoutId={willSetLayoutId} name={item.name} component={item.component} />
+            return <BaseWidget key={item.id} willSetLayoutId={willSetLayoutId} link={item.link} name={item.name} component={item.component} />
           }
         })}
-        <MySpecialApp setBg={setBg} />
       </div>
-    </div>
+    </motion.div>
   );
 }
 
-const BottomIconsBar = ({ willSetLayoutId }) => {
+const BottomIconsBar = ({ willSetLayoutId, shrink }) => {
   return (
-    <div className="w-full h-[12%] pb-3">
+    <motion.div
+      initial={{ translateY: shrink ? 0 : "-100%" }}
+      animate={{ translateY: shrink ? "100%" : 0 }}
+      transition={{ ease: "easeOut" }}
+      className="w-full h-[12%] pb-3"
+    >
       <div className="w-[95%] h-full mx-auto px-3 rounded-3xl bg-white/20 backdrop-blur grid grid-cols-4 gap-6">
         {BottomApps.map(item => <BottomIcon key={item.id} willSetLayoutId={willSetLayoutId} link={item.link} icon={item.icon} />)}
       </div>
-    </div>
+    </motion.div>
   );
 }
 
-const Filter = () => {
+const BgFilter = () => {
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="w-screen h-screen fixed bg-black" />
+      className="w-screen h-screen fixed bg-black"
+    />
   );
 }
 
 
 // 以下ウィジェットの内容
-const WidgetWeather = ({ link }) => {
+const WidgetWeather = () => {
   return (
-    <Link href={`/layout/ios/${link}/`} className="w-full h-full px-5 py-3 flex flex-col justify-between rounded-2xl bg-gradient-to-b from-gray-900 to-gray-800 text-white">
+    <div className="w-full h-full px-5 py-3 flex flex-col justify-between text-white bg-gradient-to-b from-gray-900 to-gray-800">
       <div>
         <p className="text-lg">新宿区</p>
         <p className="text-5xl font-light">24°</p>
@@ -110,22 +115,27 @@ const WidgetWeather = ({ link }) => {
         <p>曇り時々晴れ</p>
         <p>最高:28° 最低:19°</p>
       </div>
-    </Link>
+    </div>
   );
 }
 
-const WigetImage = ({ link }) => {
+const WigetPhotos = () => {
   return (
-    <Link href={`/layout/ios/${link}/`} style={{ backgroundImage: "url(/mountain.jpg)" }} className="w-full h-full bg-cover rounded-2xl" />
+    <div style={{ backgroundImage: "url(/mountain.jpg)" }} className="w-full h-full bg-cover" />
   );
 }
 
-const BaseWidget = ({ name, component }) => {
+const BaseWidget = ({ link, willSetLayoutId, name, component }) => {
   return (
     <div className="col-span-2 row-span-2 flex flex-col justify-evenly">
-      <SquareContainer>
+      <AnimationSquare
+        willSetLayoutId={willSetLayoutId}
+        link={link}
+        borderRadius={12}
+        className={"w-full h-full"}
+      >
         {component}
-      </SquareContainer>
+      </AnimationSquare>
       <div className="text-xs text-white text-center whitespace-nowrap truncate">{name}</div>
     </div>
   );
@@ -152,116 +162,42 @@ const BottomIcon = ({ link, icon, willSetLayoutId }) => {
 }
 
 const BaseIcon = ({ link, icon, willSetLayoutId }) => {
+  return (
+    <AnimationSquare
+      willSetLayoutId={willSetLayoutId}
+      link={link}
+      borderRadius={12}
+      className={"w-[84%] h-[84%] m-[8%]"}
+    >
+      <div style={{ backgroundImage: `url(${icon})` }} className="w-full h-full bg-cover" />
+    </AnimationSquare>
+  )
+}
+// ここまでアイコンの内容
+
+const AnimationSquare = ({ willSetLayoutId, link, children, borderRadius, className }) => {
   const [zIndex, setZIndex] = useState(0);
   return (
     <SquareContainer>
-      <Link
-        href={`/layout/ios/${link}/`}
-        className="w-[85%] h-[85%]"
-      >
+      <Link href={`/layout/ios/${link}/`} className="w-full h-full relative">
         <motion.div
           layoutId={willSetLayoutId && link}
-          onLayoutAnimationStart={() => setZIndex(100)}
+          onLayoutAnimationStart={() => setZIndex(1)}
           onLayoutAnimationComplete={() => setZIndex(0)}
-          style={{ backgroundImage: `url(${icon})`, zIndex: zIndex }}
-          className='w-full h-full rounded-[20%] bg-cover relative'
+          style={{ borderRadius: borderRadius, zIndex: zIndex, position: "relative", overflow: "hidden" }}
+          className={className}
+        >
+          {children}
+        </motion.div>
+        <motion.div
+          layoutId={willSetLayoutId && link + "-filter"}
+          style={{ borderRadius: borderRadius, zIndex: zIndex + 1, opacity: 0 }}
+          className="w-full h-full bg-white absolute top-0 left-0"
         />
       </Link>
     </SquareContainer>
-  )
-}
-
-const MySpecialApp = ({ setBg }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const handleClick = () => {
-    setIsOpen(!isOpen);
-  }
-  return (
-    <div className="col-span-1">
-      <AnimatePresence>
-        {isOpen && <motion.div
-          onClick={handleClick}
-          initial={{ backdropFilter: "blur(0px)", WebkitBackdropFilter: "blur(0px)" }}
-          animate={{ backdropFilter: "blur(5px)", WebkitBackdropFilter: "blur(5px)" }}
-          exit={{ backdropFilter: "blur(0px)", WebkitBackdropFilter: "blur(0px)" }}
-          className="w-screen h-screen fixed top-0 left-0 z-10"
-        />}
-      </AnimatePresence>
-      <div className="w-full pt-[100%] relative">
-        <BgSeter isOpen={isOpen} setIsOpen={setIsOpen} setBg={setBg} />
-        <div className="w-full h-full absolute top-0 left-0 flex justify-center items-center">
-          <div
-            onClick={handleClick}
-            style={{ backgroundImage: "url(/home.png)" }}
-            className="w-[85%] h-[85%] bg-cover rounded-2xl z-10"
-          />
-        </div>
-      </div>
-      <div className="text-xs text-white text-center whitespace-nowrap truncate">壁紙</div>
-    </div>
   );
 }
-
-const BgSeter = ({ isOpen, setIsOpen, setBg }) => {
-  const handleClick1 = () => {
-    setIsOpen(false);
-    setBg("/iphone-bg.png");
-  }
-  const handleClick2 = () => {
-    setIsOpen(false);
-    setBg("/iphone-bg-2.jpg");
-  }
-  const handleClick3 = () => {
-    setIsOpen(false);
-    setBg("/iphone-bg-3.jpg");
-  }
-  const handleClick4 = () => {
-    setIsOpen(false);
-    setBg("/iphone-bg-4.jpg");
-  }
-  return (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0, translateX: "-33.333%", translateY: "-50%" }}
-          animate={{ opacity: 1, scale: 1, translateX: "-33.333%", translateY: "-100%" }}
-          exit={{ opacity: 0, scale: 0, translateX: "-33.333%", translateY: "-50%" }}
-          className="p-3 absolute top-0 left-0 w-[300%] bg-black/30 backdrop-blur-lg rounded-2xl overflow-hidden z-10"
-        >
-          <div
-            onClick={handleClick1}
-            className="flex justify-between items-center text-lg leading-10 text-white border-b"
-          >
-            <p>壁紙1</p>
-            <Image style={{ width: 32, height: 32, borderRadius: 4 }} src={"/iphone-bg.png"} alt="img" width={32} height={32} />
-          </div>
-          <div
-            onClick={handleClick2}
-            className="flex justify-between items-center text-lg leading-10 text-white border-b"
-          >
-            <p>壁紙2</p>
-            <Image style={{ width: 32, height: 32, borderRadius: 4 }} src={"/iphone-bg-2.jpg"} alt="img" width={32} height={32} />
-          </div>
-          <div
-            onClick={handleClick3}
-            className="flex justify-between items-center text-lg leading-10 text-white border-b"
-          >
-            <p>壁紙3</p>
-            <Image style={{ width: 32, height: 32, borderRadius: 4 }} src={"/iphone-bg-3.jpg"} alt="img" width={32} height={32} />
-          </div>
-          <div
-            onClick={handleClick4}
-            className="flex justify-between items-center text-lg leading-10 text-white"
-          >
-            <p>壁紙4</p>
-            <Image style={{ width: 32, height: 32, borderRadius: 4 }} src={"/iphone-bg-4.jpg"} alt="img" width={32} height={32} />
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
-}
-// ここまでアイコンの内容
 
 
 const SquareContainer = ({ children }) => {
@@ -276,14 +212,14 @@ const SquareContainer = ({ children }) => {
 
 
 const mainApps = [
-  { "id": 1, "type": "widget", "link": "weather", "name": "天気", "component": <WidgetWeather link="weather" /> },
+  { "id": 1, "type": "widget", "link": "weather-widget", "name": "天気", "component": <WidgetWeather link="weather-widget" /> },
   { "id": 2, "type": "app", "link": "photos", "name": "写真", "icon": "/photos.png" },
   { "id": 3, "type": "app", "link": "reminder", "name": "リマインダー", "icon": "/reminders.png" },
   { "id": 4, "type": "app", "link": "shorcut", "name": "ショートカット", "icon": "/shortcuts.png" },
   { "id": 5, "type": "app", "link": "find", "name": "探す", "icon": "/find.png" },
   { "id": 6, "type": "app", "link": "line", "name": "LINE", "icon": "/line.png" },
   { "id": 7, "type": "app", "link": "youtube", "name": "YouTube", "icon": "/youtube.png" },
-  { "id": 8, "type": "widget", "link": "photos", "name": "写真", "component": <WigetImage link="photos" /> },
+  { "id": 8, "type": "widget", "link": "photos-widget", "name": "写真", "component": <WigetPhotos link="photos-widget" /> },
   { "id": 9, "type": "app", "link": "apple-map", "name": "マップ", "icon": "/apple-map.png" },
   { "id": 10, "type": "app", "link": "stocks", "name": "株価", "icon": "/stocks.png" },
   { "id": 11, "type": "app", "link": "twitter", "name": "Twitter", "icon": "/twitter.png" },

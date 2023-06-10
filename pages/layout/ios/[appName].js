@@ -9,8 +9,14 @@ const App = () => {
     <>
       <motion.div
         layoutId={appName}
-        style={{ backgroundImage: 'url(/youtube.png)' }}
-        className="w-screen h-screen bg-white bg-contain bg-no-repeat bg-center absolute top-0 left-0 z-20"
+        style={{ borderRadius: 0 }}
+        className="w-screen h-screen bg-white fixed z-10"
+      >
+      </motion.div>
+      <motion.div
+        layoutId={appName + "-filter"}
+        style={{ borderRadius: 0, opacity: 1 }}
+        className="w-screen h-screen bg-white fixed z-20"
       />
       <DummyHome />
     </>
@@ -21,7 +27,7 @@ export default App;
 
 const DummyHome = () => {
   return (
-    <div className="w-full h-full fixed">
+    <div className="w-screen h-screen fixed">
       <Home willSetLayoutId={false} shrink={true} />
     </div>
   );
