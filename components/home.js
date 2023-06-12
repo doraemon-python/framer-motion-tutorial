@@ -6,9 +6,10 @@ import { useState } from "react";
 
 const Home = ({ willSetLayoutId = true, shrink = false }) => {
   const [bg, setBg] = useState('/iphone-bg.png');
+
   return (
     <div
-      style={{ backgroundImage: `url(${bg})` }}
+      style={{ backgroundImage: bg && `url(${bg})` }}
       className="w-screen h-screen bg-cover bg-center bg-fixed overflow-scroll flex flex-col"
     >
       <TopBar />
@@ -17,7 +18,7 @@ const Home = ({ willSetLayoutId = true, shrink = false }) => {
       {/* opacity, transformが設定された要素は出る順にどれが上か決まる。 */}
       {/* Filterはこの中では一番上に表示させたいため、最後に配置する。 */}
       {shrink && <BgFilter shrink={shrink} />}
-    </div>
+    </div >
   );
 }
 
@@ -72,6 +73,7 @@ const MainIcons = ({ willSetLayoutId, shrink }) => {
             return <BaseWidget key={item.id} willSetLayoutId={willSetLayoutId} link={item.link} name={item.name} component={item.component} />
           }
         })}
+        <BgSetApp />
       </div>
     </motion.div>
   );
@@ -96,7 +98,7 @@ const BgFilter = () => {
   return (
     <motion.div
       initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
+      animate={{ borderRadius: 12, opacity: 1 }}
       className="w-screen h-screen fixed bg-black"
     />
   );
@@ -149,6 +151,26 @@ const TopIcon = ({ link, name, icon, willSetLayoutId }) => {
     <div className="col-span-1">
       <BaseIcon link={link} icon={icon} willSetLayoutId={willSetLayoutId} />
       <div className="text-xs text-white text-center whitespace-nowrap truncate">{name}</div>
+    </div>
+  );
+}
+
+const BgSetApp = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [zIndex, setZIndex] = useState(null);
+  const handleClick = () => {
+    setIsOpen(!isOpen);
+    setZIndex(11);
+  }
+  return (
+    <div className="col-span-1">
+      {isOpen && (
+        <div onClick={() => setIsOpen(false)} className="w-screen h-screen fixed top-0 left-0 bg-black/50 backdrop-blur-sm z-10" />
+      )}
+      <SquareContainer>
+        <div onClick={handleClick} style={{ backgroundImage: "url(/home.png)", zIndex: zIndex }} className="w-[84%] h-[84%] m-[8%] bg-cover" />
+      </SquareContainer>
+      <div className="text-xs text-white text-center whitespace-nowrap truncate">壁紙</div>
     </div>
   );
 }
@@ -228,6 +250,7 @@ const mainApps = [
   { "id": 14, "type": "app", "link": "app-store", "name": "App Store", "icon": "/app-store.png" },
   { "id": 15, "type": "app", "link": "settings", "name": "設定", "icon": "/settings.png" },
   { "id": 16, "type": "app", "link": "camera", "name": "カメラ", "icon": "/camera.png" },
+  // { "id": 17, "type": "app", "link": "bg-seter", "name": "壁紙", "icon": "/home.png" }
 ]
 
 const BottomApps = [
