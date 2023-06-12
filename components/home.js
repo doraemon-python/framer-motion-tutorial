@@ -1,20 +1,21 @@
-import { AnimatePresence, motion } from "framer-motion";
-import Image from "next/image";
+import { motion } from "framer-motion";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import { useState } from "react";
 
 
 const Home = ({ willSetLayoutId = true, shrink = false }) => {
-  const [bg, setBg] = useState('/iphone-bg.png');
+  const router = useRouter();
+  const { bg, mode } = router.query;
 
   return (
     <div
-      style={{ backgroundImage: bg && `url(${bg})` }}
+      style={{ backgroundImage: bg && `url(${bg})`, color: mode === "dark" && "white" }}
       className="w-screen h-screen bg-cover bg-center bg-fixed overflow-scroll flex flex-col"
     >
       <TopBar />
       <MainIcons willSetLayoutId={willSetLayoutId} shrink={shrink} />
-      <BottomIconsBar willSetLayoutId={willSetLayoutId} shrink={shrink} />
+      <BottomIconsBar willSetLayoutId={willSetLayoutId} shrink={shrink} mode={mode} />
       {/* opacity, transformが設定された要素は出る順にどれが上か決まる。 */}
       {/* Filterはこの中では一番上に表示させたいため、最後に配置する。 */}
       {shrink && <BgFilter shrink={shrink} />}
@@ -38,11 +39,11 @@ const TopBar = () => {
   const m = to2Digit(date.getMinutes());
   return (
     <div className="w-full h-10 pt-2 flex justify-between">
-      <div className="w-1/3 text-white flex justify-center items-center">{`${h}:${m}`}</div>
+      <div className="w-1/3 flex justify-center items-center">{`${h}:${m}`}</div>
       <div className="w-1/3 px-3">
         <Link href={"/"} className="block h-full bg-black rounded-full" />
       </div>
-      <div className="w-1/3 px-4 flex justify-around items-center text-white">
+      <div className="w-1/3 px-4 flex justify-around items-center">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
           <path d="M18.375 2.25c-1.035 0-1.875.84-1.875 1.875v15.75c0 1.035.84 1.875 1.875 1.875h.75c1.035 0 1.875-.84 1.875-1.875V4.125c0-1.036-.84-1.875-1.875-1.875h-.75zM9.75 8.625c0-1.036.84-1.875 1.875-1.875h.75c1.036 0 1.875.84 1.875 1.875v11.25c0 1.035-.84 1.875-1.875 1.875h-.75a1.875 1.875 0 01-1.875-1.875V8.625zM3 13.125c0-1.036.84-1.875 1.875-1.875h.75c1.036 0 1.875.84 1.875 1.875v6.75c0 1.035-.84 1.875-1.875 1.875h-.75A1.875 1.875 0 013 19.875v-6.75z" />
         </svg>
@@ -73,13 +74,12 @@ const MainIcons = ({ willSetLayoutId, shrink }) => {
             return <BaseWidget key={item.id} willSetLayoutId={willSetLayoutId} link={item.link} name={item.name} component={item.component} />
           }
         })}
-        <BgSetApp />
       </div>
     </motion.div>
   );
 }
 
-const BottomIconsBar = ({ willSetLayoutId, shrink }) => {
+const BottomIconsBar = ({ willSetLayoutId, shrink, mode }) => {
   return (
     <motion.div
       initial={{ translateY: shrink ? 0 : "-100%" }}
@@ -87,7 +87,7 @@ const BottomIconsBar = ({ willSetLayoutId, shrink }) => {
       transition={{ ease: "easeOut" }}
       className="w-full h-[12%] pb-3"
     >
-      <div className="w-[95%] h-full mx-auto px-3 rounded-3xl bg-white/20 backdrop-blur grid grid-cols-4 gap-6">
+      <div className={`w-[95%] h-full mx-auto px-3 rounded-3xl ${mode === "dark" ? "bg-white/20" : "bg-black/10"} backdrop-blur grid grid-cols-4 gap-6`}>
         {BottomApps.map(item => <BottomIcon key={item.id} willSetLayoutId={willSetLayoutId} link={item.link} icon={item.icon} />)}
       </div>
     </motion.div>
@@ -98,7 +98,7 @@ const BgFilter = () => {
   return (
     <motion.div
       initial={{ opacity: 0 }}
-      animate={{ borderRadius: 12, opacity: 1 }}
+      animate={{ opacity: 1 }}
       className="w-screen h-screen fixed bg-black"
     />
   );
@@ -138,7 +138,7 @@ const BaseWidget = ({ link, willSetLayoutId, name, component }) => {
       >
         {component}
       </AnimationSquare>
-      <div className="text-xs text-white text-center whitespace-nowrap truncate">{name}</div>
+      <div className="text-xs  text-center whitespace-nowrap truncate">{name}</div>
     </div>
   );
 }
@@ -150,27 +150,7 @@ const TopIcon = ({ link, name, icon, willSetLayoutId }) => {
   return (
     <div className="col-span-1">
       <BaseIcon link={link} icon={icon} willSetLayoutId={willSetLayoutId} />
-      <div className="text-xs text-white text-center whitespace-nowrap truncate">{name}</div>
-    </div>
-  );
-}
-
-const BgSetApp = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [zIndex, setZIndex] = useState(null);
-  const handleClick = () => {
-    setIsOpen(!isOpen);
-    setZIndex(11);
-  }
-  return (
-    <div className="col-span-1">
-      {isOpen && (
-        <div onClick={() => setIsOpen(false)} className="w-screen h-screen fixed top-0 left-0 bg-black/50 backdrop-blur-sm z-10" />
-      )}
-      <SquareContainer>
-        <div onClick={handleClick} style={{ backgroundImage: "url(/home.png)", zIndex: zIndex }} className="w-[84%] h-[84%] m-[8%] bg-cover" />
-      </SquareContainer>
-      <div className="text-xs text-white text-center whitespace-nowrap truncate">壁紙</div>
+      <div className="text-xs text-center whitespace-nowrap truncate">{name}</div>
     </div>
   );
 }
@@ -198,10 +178,12 @@ const BaseIcon = ({ link, icon, willSetLayoutId }) => {
 // ここまでアイコンの内容
 
 const AnimationSquare = ({ willSetLayoutId, link, children, borderRadius, className }) => {
+  const router = useRouter();
+  const { bg, mode } = router.query;
   const [zIndex, setZIndex] = useState(0);
   return (
     <SquareContainer>
-      <Link href={`/layout/ios/${link}/`} className="w-full h-full relative">
+      <Link href={{ pathname: `/layout/ios/${link}/`, query: { mode: mode, bg: bg } }} className="w-full h-full relative">
         <motion.div
           layoutId={willSetLayoutId && link}
           onLayoutAnimationStart={() => setZIndex(1)}
@@ -250,7 +232,7 @@ const mainApps = [
   { "id": 14, "type": "app", "link": "app-store", "name": "App Store", "icon": "/app-store.png" },
   { "id": 15, "type": "app", "link": "settings", "name": "設定", "icon": "/settings.png" },
   { "id": 16, "type": "app", "link": "camera", "name": "カメラ", "icon": "/camera.png" },
-  // { "id": 17, "type": "app", "link": "bg-seter", "name": "壁紙", "icon": "/home.png" }
+  { "id": 17, "type": "app", "link": "bg-seter", "name": "壁紙", "icon": "/home.png" }
 ]
 
 const BottomApps = [
