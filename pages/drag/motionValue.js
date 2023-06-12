@@ -20,7 +20,7 @@ const MotionValue = () => {
         <motion.div
           className="w-full h-full rounded-md bg-blue-500 overflow-hidden"
           drag="x"
-          dragElastic={{ left: 0.05, right: 0.5 }}
+          dragElastic={{ left: 0.05, right: 0.05 }}
           dragConstraints={ref}
           style={{ x }}
         >

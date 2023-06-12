@@ -1,5 +1,5 @@
 import Home from "@/components/home";
-import { motion } from "framer-motion";
+import { motion, useMotionValue, useTransform } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -7,30 +7,48 @@ import { useState } from "react";
 
 
 // ホーム画面: 白幕(opacity: 0, zIndex: 2 | 1) on アイコン(opacity: 1, zIndex: 1 | 0)(zIndexの表記: アニメーション中 | 終了後)
-// アプリ画面: アプリ(opacity: 1, zIndex: 20) on 黒幕(opacity: 0 => 1) on 白幕(opacity:1) 
+// アプリ画面: アプリ(opacity: 1, zIndex: 20) on 白幕(opacity:1)  on 黒幕(opacity: 0 => 1)
 // 白幕はアプリ終了時のアイコンの不自然さを隠すためにあり、起動時は見える必要がない
 
 const App = () => {
   const router = useRouter();
-  const { appName } = router.query;
+  const y = useMotionValue(0);
+  const borderRadius = useTransform(y, [0, 100], [0, 20]);
+  const scale = useTransform(y, [0, 100], [1, 0.9])
+  const { appName, mode, bg } = router.query;
+  const handleClick = (event, info) => {
+    if (info.offset.y >= 200) {
+      router.push({ pathname: "/layout/ios", query: { mode: mode, bg: bg } });
+    }
+  }
   return (
     <>
-      {appName === "bg-seter" ? (
-        <BgSeter appName={appName} />
-      ) : (
-        <motion.div
-          layoutId={appName}
-          style={{ borderRadius: 0 }}
-          className="w-screen h-screen bg-white fixed z-10 flex justify-center items-center"
-        >
-          <h1 className="text-3xl font-bold">アプリ: {appName}</h1>
-        </motion.div>
-      )}
       <motion.div
-        layoutId={appName + "-filter"}
-        style={{ borderRadius: 0, opacity: 1 }}
-        className="w-screen h-screen bg-white fixed"
-      />
+        drag="y"
+        dragConstraints={{ top: 0, bottom: 0 }}
+        dragElastic={{ top: 0, bottom: 0.5 }}
+        style={{ y, borderRadius, scale }}
+        onDrag={handleClick}
+        className="w-screen h-screen fixed z-10 overflow-hidden"
+      >
+        <motion.div
+          layoutId={appName + "-filter"}
+          style={{ borderRadius: 0, opacity: 1 }}
+          className="w-screen h-screen bg-white fixed top-0 left-0"
+        />
+        {appName === "bg-seter" ? (
+          <BgSeter appName={appName} />
+        ) : (
+          <motion.div
+            layoutId={appName}
+            style={{ borderRadius: 0 }}
+            transition={{ duration: 0.3 }}
+            className="w-full h-full bg-white fixed top-0 left-0 flex justify-center items-center"
+          >
+            <h1 className="text-3xl font-bold">アプリ: {appName}</h1>
+          </motion.div>
+        )}
+      </motion.div>
       <DummyHome />
     </>
   );
@@ -47,7 +65,7 @@ const BgSeter = ({ appName }) => {
     setMyBg(e.target.value);
   }
   return (
-    <motion.div layoutId={appName} className="w-screen h-screen fixed z-10 bg-white flex flex-col justify-around items-center">
+    <motion.div layoutId={appName} className="w-full h-full fixed top-0 left-0 bg-white flex flex-col justify-around items-center">
       <Link href={{ pathname: "/layout/ios/", query: { mode: "dark", bg: "/iphone-bg.png" } }} className="w-11/12 p-2 border rounded-md text-center flex justify-between">
         <p className="text-xl leading-[48px]">壁紙1</p>
         <Image style={{ width: 48, height: 48, borderRadius: 4 }} alt="bg" src={"/iphone-bg.png"} width={48} height={48} />

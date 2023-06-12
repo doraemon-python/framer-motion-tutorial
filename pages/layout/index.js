@@ -11,7 +11,7 @@ const Index = () => {
   }
   return (
     <Frame>
-      <MyLink href={{ pathname: "/layout/ios/", query: { bg: "/iphone-bg.png" } }} text={"iosみたいなアニメーション"} />
+      <MyLink href={{ pathname: "/layout/ios/", query: { mode: "dark", bg: "/iphone-bg.png" } }} text={"iosみたいなアニメーション"} />
       <div
         onClick={handleClick}
         className={`w-1/3 h-8 rounded-md bg-white outline outline-gray-300 flex ${!isLeft && 'flex-row-reverse'}`}>

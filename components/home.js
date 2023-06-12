@@ -62,8 +62,8 @@ const MainIcons = ({ willSetLayoutId, shrink }) => {
   return (
     <motion.div
       initial={{ scale: shrink ? 1 : 0.8 }}
-      animate={{ scale: shrink ? 0.8 : 1 }}
-      transition={{ ease: "linear" }}
+      animate={{ scale: shrink ? [1, 0.8, 1] : 1 }}
+      transition={{ ease: "linear", duration: shrink ? 0.6 : 0.3 }}
       className="w-full flex-grow"
     >
       <div className="w-[95%] mx-auto px-3 pt-6 grid grid-cols-4 gap-x-6 gap-y-4">
@@ -83,8 +83,8 @@ const BottomIconsBar = ({ willSetLayoutId, shrink, mode }) => {
   return (
     <motion.div
       initial={{ translateY: shrink ? 0 : "-100%" }}
-      animate={{ translateY: shrink ? "100%" : 0 }}
-      transition={{ ease: "easeOut" }}
+      animate={{ translateY: shrink ? ["0%", "100%", "0%"] : 0 }}
+      transition={{ ease: "easeOut", duration: shrink ? 0.6 : 0.3 }}
       className="w-full h-[12%] pb-3"
     >
       <div className={`w-[95%] h-full mx-auto px-3 rounded-3xl ${mode === "dark" ? "bg-white/20" : "bg-black/10"} backdrop-blur grid grid-cols-4 gap-6`}>
@@ -98,7 +98,8 @@ const BgFilter = () => {
   return (
     <motion.div
       initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
+      animate={{ opacity: [0, 1, 0.7] }}
+      transition={{ duration: 0.6 }}
       className="w-screen h-screen fixed bg-black"
     />
   );
@@ -138,7 +139,7 @@ const BaseWidget = ({ link, willSetLayoutId, name, component }) => {
       >
         {component}
       </AnimationSquare>
-      <div className="text-xs  text-center whitespace-nowrap truncate">{name}</div>
+      <div className="text-xs text-center whitespace-nowrap truncate">{name}</div>
     </div>
   );
 }
@@ -183,20 +184,22 @@ const AnimationSquare = ({ willSetLayoutId, link, children, borderRadius, classN
   const [zIndex, setZIndex] = useState(0);
   return (
     <SquareContainer>
-      <Link href={{ pathname: `/layout/ios/${link}/`, query: { mode: mode, bg: bg } }} className="w-full h-full relative">
+      <Link href={{ pathname: `/layout/ios/${link}/`, query: { mode: mode, bg: bg } }} style={{ zIndex: zIndex }} className="w-full h-full relative">
         <motion.div
           layoutId={willSetLayoutId && link}
-          onLayoutAnimationStart={() => setZIndex(1)}
+          onLayoutAnimationStart={() => setZIndex(10)}
           onLayoutAnimationComplete={() => setZIndex(0)}
-          style={{ borderRadius: borderRadius, zIndex: zIndex, position: "relative", overflow: "hidden" }}
+          transition={{ duration: 0.3 }}
+          style={{ borderRadius: borderRadius, position: "relative", overflow: "hidden" }}
           className={className}
         >
           {children}
         </motion.div>
         <motion.div
           layoutId={willSetLayoutId && link + "-filter"}
-          style={{ borderRadius: borderRadius, zIndex: zIndex + 1, opacity: 0 }}
-          className="w-full h-full bg-white absolute top-0 left-0"
+          style={{ borderRadius: borderRadius, opacity: 0 }}
+          transition={{ duration: 0.3 }}
+          className={`${className} bg-white absolute top-0 left-0`}
         />
       </Link>
     </SquareContainer>

@@ -10,6 +10,8 @@ const Index = () => {
       </motion.div>
       <MyLink href={"/tmp/test/"} text={"aaaaaaaa"} />
       <MyLink href={"/tmp/notTest/"} text={"bbbbbb"} />
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 2 }} onAnimationComplete={() => console.log('上のやつ終了')} className="w-full h-32 my-4 bg-sky-500" />
+      <motion.div animate={{ opacity: [0, 1, 0] }} transition={{ duration: 4 }} onAnimationComplete={() => console.log('下のやつ終了')} className="w-full h-32 my-4 bg-sky-500" />
     </>
   );
 }
