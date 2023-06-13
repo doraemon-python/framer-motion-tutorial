@@ -13,11 +13,11 @@ import { useState } from "react";
 const App = () => {
   const router = useRouter();
   const y = useMotionValue(0);
-  const borderRadius = useTransform(y, [0, 100], [0, 20]);
-  const scale = useTransform(y, [0, 100], [1, 0.9])
+  const borderRadius = useTransform(y, [0, 10], [0, 100]);
+  const scale = useTransform(y, [0, 10], [1, 0.5])
   const { appName, mode, bg } = router.query;
   const handleClick = (event, info) => {
-    if (info.offset.y >= 200) {
+    if (info.offset.y >= 300) {
       router.push({ pathname: "/layout/ios", query: { mode: mode, bg: bg } });
     }
   }
@@ -26,7 +26,7 @@ const App = () => {
       <motion.div
         drag="y"
         dragConstraints={{ top: 0, bottom: 0 }}
-        dragElastic={{ top: 0, bottom: 0.5 }}
+        dragElastic={{ top: 0, bottom: 0.01 }}
         style={{ y, borderRadius, scale }}
         onDrag={handleClick}
         className="w-screen h-screen fixed z-10 overflow-hidden"
@@ -41,7 +41,7 @@ const App = () => {
         ) : (
           <motion.div
             layoutId={appName}
-            style={{ borderRadius: 0 }}
+            style={{ borderRadius }}
             transition={{ duration: 0.3 }}
             className="w-full h-full bg-white fixed top-0 left-0 flex justify-center items-center"
           >
